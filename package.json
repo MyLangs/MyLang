@@ -1,0 +1,64 @@
+{
+  "name": "mylang2",
+  "version": "2.3.0",
+  "main": "./dist/src/index.js",
+  "description": "The MyLang programming language",
+  "scripts": {
+    "prettier": "npx prettier --write src/ bin/ prettier/",
+    "testing": "npm run build:test && node index.js",
+    "test": "npm run build:test && node dist/bin/index.js test",
+    "build:test": "npx tsc --project ./tsconfig.json",
+    "build:release": "npm run prettier && npx tsc --project ./tsconfig.json",
+    "check:docs": "node tools/check-examples.js && node tools/check-suspends.js && node tools/check-members.js",
+    "check": "npm run build:test && node index.js && npm run check:docs && npm run check:docs:run && npm run check:prettier",
+    "check:docs:run": "node tools/check-examples-run.js",
+    "check:prettier": "node tools/check-prettier.js",
+    "check:prettier:suite": "node tools/check-prettier.js --run-suite"
+  },
+  "bin": {
+    "mylang": "./dist/bin/index.js"
+  },
+  "files": [
+    "./dist",
+    "CHANGELOG.md",
+    "docs",
+    "library/**/README.md",
+    "perf",
+    "tools",
+    "prettier/README.md"
+  ],
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "keywords": [
+    "mylang",
+    "lang",
+    "programming",
+    "js",
+    "ts",
+    "Sempai-07",
+    "formatter"
+  ],
+  "author": "Sempai<zadmanthegreat@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/chalk": "^0.4.31",
+    "@types/cli-progress": "^3.11.6",
+    "@types/node": "^20.17.16",
+    "@types/node-fetch": "^2.6.12",
+    "@types/readline-sync": "^1.4.8",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "chokidar": "^4.0.3",
+    "cli-progress": "^3.12.0",
+    "commander": "^12.1.0",
+    "express": "^5.2.1",
+    "minimatch": "^10.0.1",
+    "node-fetch": "^2.7.0",
+    "readline-sync": "^1.4.10",
+    "tslib": "^2.8.1"
+  }
+}
