@@ -1,4 +1,3 @@
-import { deepEqual } from "node:assert";
 import { StmtType } from "../StmtType";
 import { type Position } from "../../lexer/token/Position";
 import { OperatorType } from "../../lexer/token/TokenType";
@@ -8,30 +7,8 @@ import {
   OperatorCodeError,
 } from "../../errors/runtime/OperatorError";
 import { type Gen } from "../../runtime/coroutine";
+import { deepEqual } from "../../utils/deepEqual";
 import { needsExplicitText } from "../../utils/needsExplicitText";
-
-// Inside an enum method `this` is `{ Low: null, High: <member> }`; as an operand
-// of `==` it stands for the member it was created for.
-function unwrapEnumThis(value: any): unknown {
-  if (value?.[Environment.SymbolEnumThis]) {
-    const member = Object.values(value).find(
-      (item) => item !== null && item !== undefined,
-    );
-
-    return member ?? value;
-  }
-
-  return value;
-}
-
-function deepEqualTry(actual: unknown, expected: unknown) {
-  try {
-    deepEqual(unwrapEnumThis(actual), unwrapEnumThis(expected));
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 class BinaryExpression extends StmtType {
   public readonly operator: OperatorType;
@@ -114,10 +91,10 @@ class BinaryExpression extends StmtType {
           return left / right;
         }
         case OperatorType.Equal: {
-          return deepEqualTry(left, right);
+          return deepEqual(left, right);
         }
         case OperatorType.NotEqual: {
-          return !deepEqualTry(left, right);
+          return !deepEqual(left, right);
         }
         case OperatorType.GreaterThan: {
           return left > right;

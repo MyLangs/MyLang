@@ -1,4 +1,3 @@
-import { deepEqual } from "node:assert";
 import { StmtType } from "../StmtType";
 import { type Position } from "../../lexer/token/Position";
 import { Environment } from "../../Environment";
@@ -8,19 +7,9 @@ import { MemberExpression } from "../expression/MemberExpression";
 import { CallExpression } from "../expression/CallExpression";
 import { isTypeArgs } from "../../../library/utils/utils";
 import { runtime } from "../../runtime/Runtime";
+import { deepEqual } from "../../utils/deepEqual";
 import { type Gen } from "../../runtime/coroutine";
 
-function deepEqualTry(actual: unknown, expected: unknown) {
-  try {
-    deepEqual(actual, expected);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// `case (.key)` is parsed into a member access / call rooted at the matched
-// value itself; only those conditions are "object patterns".
 function isRootedAt(node: any, root: StmtType): boolean {
   let current = node;
 
@@ -43,7 +32,7 @@ function enumThisMatches(test: any, expected: unknown): boolean {
 
   return Object.values(test).some(
     (member) =>
-      member !== null && member !== undefined && deepEqualTry(member, expected),
+      member !== null && member !== undefined && deepEqual(member, expected),
   );
 }
 
@@ -86,7 +75,7 @@ class MatchStatement extends StmtType {
               condition instanceof CallExpression) &&
             isRootedAt(condition, this.test) &&
             conditionEvaluate) ||
-          deepEqualTry(test, conditionEvaluate) ||
+          deepEqual(test, conditionEvaluate) ||
           enumThisMatches(test, conditionEvaluate)
         ) {
           isMatchTry = true;
