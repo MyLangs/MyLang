@@ -71,15 +71,6 @@ class FunctionDeclaration extends StmtType {
       args.map(({ value }) => value),
     );
 
-    for (const key of Object.keys(callEnvironment)) {
-      if (
-        !this.parentEnv.has(key) ||
-        this.parentEnv.get(key) instanceof FunctionDeclaration
-      )
-        continue;
-      this.parentEnv.update(key, callEnvironment.get(key));
-    }
-
     const rootProcess = this.parentEnv.getRootEnv().get("process");
     const lexicalThis = this.parentEnv.has("this")
       ? this.parentEnv.get("this")

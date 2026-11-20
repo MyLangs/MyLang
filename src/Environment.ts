@@ -8,8 +8,8 @@ interface IOptionsVar {
 
 class Environment {
   private parent?: Environment;
-  protected values: Record<string, any> = {};
-  public optionsVar: Record<string, IOptionsVar> = {};
+  protected values: Map<string, any> = new Map();
+  public optionsVar: Map<string, IOptionsVar> = new Map();
   public deferenceCall: any[] = [];
   static SymbolEnum = Symbol("SymbolEnum");
   static SymbolEnumThis = Symbol("SymbolEnumThis");
@@ -39,6 +39,14 @@ class Environment {
     this.deferenceCall = [];
   }
 
+  private importPaths(): any[] {
+    return (
+      this.values.get("import")?.paths ??
+      this.parent?.values.get("import")?.paths ??
+      []
+    );
+  }
+
   /** Record `keys` as interpreter-defined globals of this scope. */
   markInterpreterGlobals(keys: string[]): void {
     for (const key of keys) this.interpreterGlobals.add(key);
@@ -58,53 +66,46 @@ class Environment {
     if (!owner || !owner.interpreterGlobals.has(key)) return false;
 
     owner.interpreterGlobals.delete(key);
-    owner.values[key] = value;
+    owner.values.set(key, value);
 
-    if (options) owner.optionsVar[key] = options;
+    if (options) owner.optionsVar.set(key, options);
 
     return true;
   }
 
-  create(key: string, value: any, options?: IOptionsVar): Record<string, any> {
-    if (this.values.hasOwnProperty(key)) {
+  create(key: string, value: any, options?: IOptionsVar): any {
+    if (this.values.has(key)) {
       throw new BaseError(`${key} has been initialized`, {
-        files:
-          this.values["import"]?.paths ??
-          this.parent?.values["import"]?.paths ??
-          [],
+        files: this.importPaths(),
       });
     }
 
     if (options) {
-      this.optionsVar[key] = options;
+      this.optionsVar.set(key, options);
     }
 
-    return (this.values[key] = value);
+    this.values.set(key, value);
+
+    return value;
   }
 
-  update(key: string, value: any, options?: IOptionsVar): Record<string, any> {
+  update(key: string, value: any, options?: IOptionsVar): Map<string, any> {
     const matchedEnvironment = this.getEnvironmentWithKey(key);
 
     if (!matchedEnvironment) {
       throw new BaseError(`${key} hasn't been defined`, {
-        files:
-          this.values["import"]?.paths ??
-          this.parent?.values["import"]?.paths ??
-          [],
+        files: this.importPaths(),
       });
     }
 
     if (options) {
-      matchedEnvironment.optionsVar[key] = options;
+      matchedEnvironment.optionsVar.set(key, options);
     }
 
-    // Assign in place. Rebuilding the scope's whole table - `{...values, [key]: value}` -
-    // made every assignment cost as much as the scope had variables and allocated a fresh
-    // object each time, so a loop that updates one counter rebuilt its scope on every
-    // iteration and left the result to the garbage collector. Nothing reads this return
-    // value and nothing compares scope tables by identity; `clone` and `combine` copy the
-    // table themselves, so a clone taken earlier is unaffected by a later assignment.
-    matchedEnvironment.values[key] = value;
+    // Assign in place: no rebuilding of the scope table on every assignment.
+    // `clone` and `combine` copy the table themselves, so a clone taken earlier
+    // is unaffected by a later assignment.
+    matchedEnvironment.values.set(key, value);
 
     return matchedEnvironment.values;
   }
@@ -114,37 +115,31 @@ class Environment {
 
     if (!matchedEnvironment) {
       throw new BaseError(`${key} is not defined`, {
-        files:
-          this.values["import"]?.paths ??
-          this.parent?.values["import"]?.paths ??
-          [],
+        files: this.importPaths(),
       });
     }
 
-    return matchedEnvironment.values[key];
+    return matchedEnvironment.values.get(key);
   }
 
   ensure(key: string, value: any): void {
     const matchedEnvironment = this.getEnvironmentWithKey(key);
 
     if (!matchedEnvironment) {
-      this.values[key] = value;
+      this.values.set(key, value);
     } else {
-      matchedEnvironment.values[key] = value;
+      matchedEnvironment.values.set(key, value);
     }
   }
 
   has(key: string): boolean {
-    if (this.values.hasOwnProperty(key)) {
-      return true;
-    }
-    return false;
+    return this.values.has(key);
   }
 
   clone(): Environment {
     const newEnv = new Environment();
-    newEnv.values = { ...this.values };
-    newEnv.optionsVar = { ...this.optionsVar };
+    newEnv.values = new Map(this.values);
+    newEnv.optionsVar = new Map(this.optionsVar);
 
     if (this.parent) {
       newEnv.parent = this.parent.clone();
@@ -160,8 +155,8 @@ class Environment {
 
     const newEnv = new Environment(parent);
 
-    newEnv.values = { ...this.values, ...env.values };
-    newEnv.optionsVar = { ...this.optionsVar, ...env.optionsVar };
+    newEnv.values = new Map([...this.values, ...env.values]);
+    newEnv.optionsVar = new Map([...this.optionsVar, ...env.optionsVar]);
 
     return newEnv;
   }
@@ -172,7 +167,7 @@ class Environment {
    * the scope that happens to read or assign it.
    */
   getOptions(key: string): IOptionsVar | undefined {
-    return this.getEnvironmentWithKey(key)?.optionsVar[key];
+    return this.getEnvironmentWithKey(key)?.optionsVar.get(key);
   }
 
   /**
@@ -196,14 +191,14 @@ class Environment {
   }
 
   getEnvironmentWithKey(key: string): Environment | null {
-    if (this.values.hasOwnProperty(key)) {
+    if (this.values.has(key)) {
       return this;
     }
 
     let currentEnvironment = this.parent;
 
     while (currentEnvironment) {
-      if (currentEnvironment.values.hasOwnProperty(key)) {
+      if (currentEnvironment.values.has(key)) {
         return currentEnvironment;
       }
       currentEnvironment = currentEnvironment.parent;

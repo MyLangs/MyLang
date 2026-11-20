@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { StmtType, type ITextOptions } from "../StmtType";
 import { type Position } from "../../lexer/token/Position";
 import { type BlockStatement } from "../statement/BlockStatement";
-import { FunctionDeclaration } from "../declaration/FunctionDeclaration";
 import { Environment, type IOptionsVar } from "../../Environment";
 import { runtime } from "../../runtime/Runtime";
 import { type Gen } from "../../runtime/coroutine";
@@ -71,15 +70,6 @@ class FunctionExpression extends StmtType {
       "arguments",
       args.map(({ value }) => value),
     );
-
-    for (const key of Object.keys(callEnvironment)) {
-      if (
-        !this.parentEnv.has(key) ||
-        this.parentEnv.get(key) instanceof FunctionDeclaration
-      )
-        continue;
-      this.parentEnv.update(key, callEnvironment.get(key));
-    }
 
     const rootProcess = this.parentEnv.getRootEnv().get("process");
     const lexicalThis = this.parentEnv.has("this")
