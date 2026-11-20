@@ -136,7 +136,7 @@ four bugs, all fixed here.
 
 ### Tests
 
-2085 tests, up from 1919. In the language itself, as always:
+2091 tests, up from 1919. In the language itself, as always:
 
 - **Integration** — four suites weaving the libraries into each other: text and binary
   codecs across seams (`encoding-chain`), one value carried through a chain of libraries

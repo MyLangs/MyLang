@@ -10,14 +10,6 @@ import {
 } from "../../runtime/structMembers";
 import { instantiate, initialiseStatics } from "../struct/instantiate";
 
-/**
- * `struct Name { ... }` - a named struct type.
- *
- * Evaluating the declaration binds the type to its name and initialises its `static`
- * members once; calling the type (`Name(...)`) builds an instance. See
- * `ast/struct/instantiate` for what an instance carries and `runtime/structMembers` for
- * how `private` and `static` are enforced.
- */
 class StructDeclaration extends StmtType {
   public name: string;
   public fields: VariableDeclaration[];

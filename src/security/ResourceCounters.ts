@@ -1,3 +1,8 @@
+import {
+  PermissionError,
+  PermissionCodeError,
+} from "../errors/runtime/PermissionError";
+
 /**
  * Caps on *how many* of a thing a program may hold at once
  * (`--max-open-files`, `--max-connections`, `--max-tasks`, `--max-workers`).
@@ -10,11 +15,6 @@
  * A counter is only consulted when a limit for it was given, so an unrestricted program
  * pays one map lookup per resource.
  */
-
-import {
-  PermissionError,
-  PermissionCodeError,
-} from "../errors/runtime/PermissionError";
 
 /** The things that are counted. */
 type CountedKind = "file" | "connection" | "task" | "worker";
@@ -43,7 +43,6 @@ type Limits = Partial<Record<CountedKind, number | null>>;
 class ResourceCounters {
   private readonly limits = new Map<CountedKind, number>();
   private readonly held = new Map<CountedKind, number>();
-  /** The most of each kind the program has ever held at once, for reporting. */
   private readonly peak = new Map<CountedKind, number>();
 
   constructor(limits: Limits = {}) {

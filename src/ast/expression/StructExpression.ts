@@ -10,12 +10,6 @@ import {
 } from "../../runtime/structMembers";
 import { instantiate, initialiseStatics } from "../struct/instantiate";
 
-/**
- * `struct { ... }` - a struct type written where a value is expected, so it can be
- * assigned, passed around or returned. It behaves exactly like a declared struct
- * (`ast/struct/instantiate` builds both), except that it has no name of its own until
- * something binds it to one.
- */
 class StructExpression extends StmtType {
   public name: string | null;
   public fields: VariableDeclaration[];

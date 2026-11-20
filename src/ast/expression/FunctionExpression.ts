@@ -81,10 +81,6 @@ class FunctionExpression extends StmtType {
       this.parentEnv.update(key, callEnvironment.get(key));
     }
 
-    // `this` resolution (same rules as FunctionDeclaration.call):
-    // a real lexical `this` wins, then the object the method was called on,
-    // then the `process` fallback. The inherited fallback itself must not hide
-    // the object a method is called on.
     const rootProcess = this.parentEnv.getRootEnv().get("process");
     const lexicalThis = this.parentEnv.has("this")
       ? this.parentEnv.get("this")

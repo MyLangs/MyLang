@@ -41,8 +41,6 @@ class InterpolatedString extends StmtType {
         if (parseValue[0]) {
           const value = yield parseValue[0].evaluate(score);
 
-          // the same coercion the binary operators refuse: say what to do instead of
-          // letting the host complain about a class constructor
           if (needsExplicitText(value)) {
             throw super.throwErrorFormatters(
               new BaseError(

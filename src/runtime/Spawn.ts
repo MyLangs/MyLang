@@ -59,7 +59,9 @@ class Spawn<T = any> {
     if (status === "rejected") this._error = value;
 
     const callbacks = this._settledCallbacks;
+
     this._settledCallbacks = [];
+
     for (const callback of callbacks) callback();
   }
 
@@ -110,6 +112,7 @@ class Spawn<T = any> {
 
   get elapsed(): number | null {
     if (!this._started) return null;
+
     return (
       (this._status !== "pending" ? this._endTime : Date.now()) -
       this._startTime

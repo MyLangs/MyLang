@@ -27,7 +27,6 @@ class WaitExpression extends StmtType {
       throw new SpawnQueueError(SpawnQueueCodeError.ValueIsNotSpawn);
     }
 
-    // suspend only this task until the awaited task settles; other tasks keep running
     yield spawnHandler.join();
 
     return {

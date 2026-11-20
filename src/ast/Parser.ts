@@ -251,7 +251,6 @@ class Parser {
         this.peek().type === TokenType.Identifier &&
         this.peek(1).type === TokenType.ParenthesisOpen
       ) {
-        // method shorthand: `name(args) { body }` is `name: func(args) { body }`
         const methodName = this.peek().value;
         this.next(); // Move past the method name
 
@@ -1307,7 +1306,6 @@ class Parser {
       if (this.peek().value === KeywordType.Case) {
         this.next(); // Move past 'case'
 
-        // `case (value):` and `case value:` are both accepted
         const hasParenthesis = this.peek().type === TokenType.ParenthesisOpen;
 
         if (hasParenthesis) {
@@ -1841,7 +1839,6 @@ class Parser {
           value,
         });
 
-        // members may be separated by ';', ',' or just a new line
         if (this.peek().type === TokenType.Comma) {
           this.next(); // Move past ','
         } else {
@@ -1965,9 +1962,6 @@ class Parser {
         this.next(); // Move past 'func'
 
         if (this.peek().type === TokenType.BracketOpen) {
-          // `func [symbol.dispose]() { ... }`: a symbol member. Neither modifier can mean
-          // anything here - a symbol is not a name `private` could hide, and a protocol
-          // belongs to the instance, never to the type.
           if (sawModifier) {
             this.throwError(SyntaxCodeError.StructSymbolModifier, {
               modifier: member.private ? "private" : "static",
@@ -2193,8 +2187,6 @@ class Parser {
       return reflect;
     }
 
-    // `typeof` takes the member chain and no more: see `tightMember`. `in` is an infix
-    // operator and keeps the precedence it has always had.
     const previousTight = this.tightMember;
 
     if (operator.value === ReflectType.Typeof) this.tightMember = true;
@@ -2315,8 +2307,8 @@ class Parser {
   }
 
   parseMemberExpressions(identifier: StmtType): any {
-    // consumed here, so anything parsed inside the chain binds normally
     const tight = this.tightMember;
+
     this.tightMember = false;
 
     const isMemberExpression = (token: TokenType) =>
@@ -2430,7 +2422,6 @@ class Parser {
       );
     }
 
-    // `o.n++` / `items[i]--`: the postfix step a bare name always had, now on a member
     if (
       object instanceof MemberExpression &&
       (this.peek().type === TokenType.OperatorPlusPlus ||

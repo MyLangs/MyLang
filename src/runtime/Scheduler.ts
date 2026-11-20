@@ -172,8 +172,7 @@ class Scheduler {
     this.requestPump();
   }
 
-  /** Has the cleanup phase run out of time? */
-  private abortExpired(): boolean {
+  abortExpired(): boolean {
     return this.abortReason !== null && Date.now() >= this.abortDeadline;
   }
 
@@ -465,7 +464,6 @@ class Scheduler {
       }
 
       if (task.cancelRequested && !task.unwinding) {
-        // run every `finally` / `defer` of every active frame, top to bottom
         task.unwinding = true;
         task.co.unwind();
         result = task.co.resume("next");
@@ -488,7 +486,6 @@ class Scheduler {
 
     if (result.done) {
       if (this.abortReason !== null) {
-        // the last task has released what it held: stop waiting for the deadline
         this.dropDuringAbort(task);
         return;
       }
@@ -507,14 +504,12 @@ class Scheduler {
   }
 
   private handleSignal(task: Spawn, signal: Signal): void {
-    // The cleanup phase is over: nothing may be queued or parked again.
     if (this.abortExpired()) {
       task.co = null;
       this.dropDuringAbort(task);
       return;
     }
 
-    // A task that was cancelled while running must not start a new suspension: unwind it.
     if (task.cancelRequested && !task.unwinding) {
       task.lifecycle = "ready";
       this.ready.push(task);
@@ -567,8 +562,8 @@ class Scheduler {
       return;
     }
 
-    // Anything else means some code yielded a non-generator, non-signal value (e.g. a string) by mistake.
     task.co = null;
+
     this.finish(
       task,
       "rejected",

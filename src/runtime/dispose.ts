@@ -1,3 +1,8 @@
+import { Environment } from "../Environment";
+import { BaseError } from "../errors/BaseError";
+import { isSubclassOfByName } from "../utils/isSubclassOfByName";
+import { lift, type Gen } from "./coroutine";
+
 /**
  * The `symbol.dispose` protocol.
  *
@@ -12,11 +17,6 @@
  *
  * Both are invoked here, so no caller has to care which one it got.
  */
-
-import { Environment } from "../Environment";
-import { BaseError } from "../errors/BaseError";
-import { isSubclassOfByName } from "../utils/isSubclassOfByName";
-import { lift, type Gen } from "./coroutine";
 
 /** Does `value` carry a `symbol.dispose` member? */
 function isDisposable(value: any): boolean {
@@ -46,7 +46,6 @@ function* dispose(resource: any, environment: Environment): Gen<any> {
 
   if (disposer === null) return null;
 
-  // a native resource: `class Close extends FunctionBuilder`
   if (
     typeof disposer === "function" &&
     isSubclassOfByName(disposer, "FunctionBuilder")
@@ -54,7 +53,6 @@ function* dispose(resource: any, environment: Environment): Gen<any> {
     return yield lift(new disposer([resource], [], environment).call());
   }
 
-  // a language function: `func() { ... }`
   if (typeof disposer?.call === "function") {
     return yield lift(disposer.call([{ value: resource }], environment));
   }

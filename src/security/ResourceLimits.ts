@@ -1,3 +1,8 @@
+import {
+  PermissionError,
+  PermissionCodeError,
+} from "../errors/runtime/PermissionError";
+
 /**
  * Memory and wall-clock limits (`--max-memory`, `--timeout`).
  *
@@ -9,11 +14,6 @@
  * so it is rate-limited: it runs at most every `SAMPLE_INTERVAL_MS` and otherwise returns
  * the previous verdict.
  */
-
-import {
-  PermissionError,
-  PermissionCodeError,
-} from "../errors/runtime/PermissionError";
 
 const SAMPLE_INTERVAL_MS = 20;
 

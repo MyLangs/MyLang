@@ -12,15 +12,6 @@ import {
 import { isTypeArgs } from "../../../library/utils/utils";
 import { type Gen } from "../../runtime/coroutine";
 
-/**
- * A node that evaluates its inner expression once and then keeps answering with that
- * value. `o.f().x++` reads the member and writes it back, and both have to reach the
- * same object: evaluating `o.f()` twice would call `f` twice and could write to a
- * different object than the one that was read.
- *
- * `value` passes through, because the assignment looks at `obj.value` to find a
- * `readonly` or `const` binding by name.
- */
 class EvaluatedOnce extends StmtType {
   private done = false;
   private result: any;
@@ -46,8 +37,6 @@ class EvaluatedOnce extends StmtType {
     return this.result;
   }
 }
-
-/** A value that is already known, handed to the assignment as its right side. */
 class KnownValue extends StmtType {
   constructor(
     private readonly known: any,
@@ -60,16 +49,6 @@ class KnownValue extends StmtType {
     return this.known;
   }
 }
-
-/**
- * `x++` / `x--`, and the same on a member: `o.n++`, `items[i]--`, `this.count++`,
- * `Counter.created++`.
- *
- * Postfix only, as it always was: the value of the expression is the value *before*
- * the step. A member is stepped through `AssignmentExpression`, so every rule an
- * assignment obeys - `readonly`, `const`, enum members, `private` and `static` struct
- * members - applies to `++` exactly as it applies to `+= 1`.
- */
 class UpdateExpression extends StmtType {
   public readonly operator: OperatorType;
   public readonly argument: StmtType;
@@ -109,10 +88,8 @@ class UpdateExpression extends StmtType {
   *evaluate(score: Environment): Gen<any> {
     try {
       if (this.argument instanceof MemberExpression) {
-        // fresh per evaluation: the same node may run in several tasks at once
         const target = new MemberExpression(
           new EvaluatedOnce(this.argument.obj),
-          // a plain `.name` is a literal: wrapping it would hide what kind of key it is
           this.argument.computed
             ? new EvaluatedOnce(this.argument.property)
             : this.argument.property,

@@ -95,8 +95,6 @@ class MemberExpression extends StmtType {
         }
       }
 
-      // A struct *type* reveals its name and its `static` members, nothing else:
-      // the fields and methods of an instance are not reachable through the type.
       if (
         typeof propertyKey === "string" &&
         propertyKey !== "name" &&
@@ -108,11 +106,8 @@ class MemberExpression extends StmtType {
         );
       }
 
-      // `private` members exist only for code running inside the same struct type.
       assertMemberAccess(objectValue, propertyKey, "read");
 
-      // Resolved natively: own members of language values only - never the JS prototype
-      // chain, never host functions or objects (see runtime/members.ts).
       const value = getMember(objectValue, propertyKey);
 
       if (!this.optional && value === undefined) {

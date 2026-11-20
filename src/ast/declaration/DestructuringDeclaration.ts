@@ -71,7 +71,6 @@ class DestructuringDeclaration extends StmtType {
       read = (target, index) =>
         target.rest ? items.slice(index) : items[index];
     } else {
-      // plain objects and struct instances both keep their data as properties
       const type = isTypeArgs(source);
 
       if (type !== "object" && type !== "struct") {

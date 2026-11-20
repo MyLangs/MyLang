@@ -80,13 +80,6 @@ class FunctionDeclaration extends StmtType {
       this.parentEnv.update(key, callEnvironment.get(key));
     }
 
-    // `this` resolution:
-    //  1. a real lexical `this` (struct / enum methods, closures created inside
-    //     them) wins;
-    //  2. otherwise the object the method was called on (`obj.method()`);
-    //  3. otherwise the `process` fallback.
-    // Every function call environment holds `this = process` as a fallback, so
-    // that inherited fallback must not hide the object a method is called on.
     const rootProcess = this.parentEnv.getRootEnv().get("process");
     const lexicalThis = this.parentEnv.has("this")
       ? this.parentEnv.get("this")

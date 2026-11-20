@@ -1,3 +1,11 @@
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  PermissionError,
+  PermissionCodeError,
+} from "../errors/runtime/PermissionError";
+
 /**
  * Integrity of remote imports (`mylang.lock`).
  *
@@ -21,14 +29,6 @@
  * No syntax is involved: the lock file is data, and the program that uses it is unchanged.
  */
 
-import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import {
-  PermissionError,
-  PermissionCodeError,
-} from "../errors/runtime/PermissionError";
-
 const LOCK_FILE = "mylang.lock";
 
 interface LockData {
@@ -40,12 +40,9 @@ function hashOf(content: string | Buffer): string {
 }
 
 class Integrity {
-  /** Directory the lock file lives in; `null` disables the whole mechanism. */
   private root: string | null = null;
   private data: LockData = { remote: {} };
-  /** Refuse any remote import that is not already recorded. */
   private frozen = false;
-  /** Set when something was added, so the file is written once at the end. */
   private dirty = false;
   private loaded = false;
 

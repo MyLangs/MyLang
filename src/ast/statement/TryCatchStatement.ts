@@ -33,7 +33,6 @@ class TryCatchStatement extends StmtType {
       const callEnvironment = new Environment(score);
       return yield this.tryBlock.evaluate(callEnvironment);
     } catch (err) {
-      // `try { } finally { }` without `catch` must not swallow the error
       if (!this.catchBlock) {
         throw err;
       }
@@ -47,9 +46,6 @@ class TryCatchStatement extends StmtType {
       return yield this.catchBlock[1].evaluate(callEnvironment);
     } finally {
       if (this.finallyBlock) {
-        // `finally` also runs in the middle of a `return` / `break` / `continue`:
-        // park the control-flow flags, run the block, then put them back
-        // (unless the finally block itself returned / broke out).
         const flags = {
           isBreak: runtime.isBreak,
           isReturn: runtime.isReturn,

@@ -69,7 +69,6 @@ class raceWait extends WaitBuilder {
   *call(): Gen<any> {
     const tasks = this.collect();
 
-    // the first task (in argument order for already settled ones) that settles decides
     const first: Spawn<any> = yield park<Spawn<any>>((wake) => {
       const unsubscribe = tasks.map(({ handler }) =>
         handler.onSettled(() => wake(handler)),

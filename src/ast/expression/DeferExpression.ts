@@ -6,16 +6,6 @@ import { isDisposable, dispose } from "../../runtime/dispose";
 import { isTypeArgs } from "../../../library/utils/utils";
 import { type Gen } from "../../runtime/coroutine";
 
-/**
- * `var file = defer fs.open(path, "r");`
- *
- * Evaluates the expression, checks that the result owns a releasable resource (it carries
- * `symbol.dispose`), and schedules that disposer to run when the enclosing block ends -
- * normally, through `return` / `break` / `continue`, through a thrown error, or because
- * the task was cancelled.
- *
- * The value itself is returned, so the resource can be used straight away.
- */
 class DeferExpression extends StmtType {
   public readonly value: StmtType;
   public readonly position: Position;
@@ -44,7 +34,6 @@ class DeferExpression extends StmtType {
       );
     }
 
-    // the environment is captured so the disposer still sees the scope it was created in
     score.deferenceCall.push([
       score,
       (environment: Environment) => dispose(result, environment),

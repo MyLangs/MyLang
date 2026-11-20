@@ -49,7 +49,7 @@ class ForStatement extends StmtType {
           const executionEnvironment = new Environment(bridgeEnvironment);
           if (runtime.scheduler.shouldYield()) yield TICK;
           yield this.body.evaluate(executionEnvironment);
-          runtime.resetContinue(); // the iteration is over
+          runtime.resetContinue();
           if (this.update) yield this.update.evaluate(executionEnvironment);
         }
       } else {
@@ -57,7 +57,7 @@ class ForStatement extends StmtType {
           const executionEnvironment = new Environment(bridgeEnvironment);
           if (runtime.scheduler.shouldYield()) yield TICK;
           yield this.body.evaluate(executionEnvironment);
-          runtime.resetContinue(); // the iteration is over
+          runtime.resetContinue();
           if (this.update) yield this.update.evaluate(executionEnvironment);
         }
       }

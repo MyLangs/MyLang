@@ -1,3 +1,8 @@
+import { Permissions, type PermissionKind } from "./Permissions";
+import { ResourceLimits } from "./ResourceLimits";
+import { ResourceCounters, type CountedKind } from "./ResourceCounters";
+import { type PermissionError } from "../errors/runtime/PermissionError";
+
 /**
  * The security context of the running program.
  *
@@ -11,11 +16,6 @@
  *   security.net(`${host}:${port}`);
  *   if (security.can("process")) ...  // never throws
  */
-
-import { Permissions, type PermissionKind } from "./Permissions";
-import { ResourceLimits } from "./ResourceLimits";
-import { ResourceCounters, type CountedKind } from "./ResourceCounters";
-import { type PermissionError } from "../errors/runtime/PermissionError";
 
 class SecurityContext {
   private _permissions: Permissions = Permissions.unrestricted();

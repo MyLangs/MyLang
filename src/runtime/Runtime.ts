@@ -64,7 +64,6 @@ class Runtime {
         if (violation) this.scheduler.abort(violation);
       }, remaining + 1);
 
-      // a program that finishes early must not be kept alive by this timer
       this.deadlineHandle.unref?.();
     }
   }

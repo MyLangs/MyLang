@@ -1,3 +1,7 @@
+import { BaseError } from "../errors/BaseError";
+import type { Scheduler } from "./Scheduler";
+import { Trampoline } from "./Trampoline";
+
 /**
  * Coroutine primitives of the interpreter.
  *
@@ -15,10 +19,6 @@
  * IMPORTANT: coroutines are always called with `yield`, never with `yield*`. `yield*` would
  * nest generators on the JavaScript call stack and cap recursion depth at a few hundred calls.
  */
-
-import { BaseError } from "../errors/BaseError";
-import type { Scheduler } from "./Scheduler";
-import { Trampoline } from "./Trampoline";
 
 type Wake = (value?: any) => void;
 type Fail = (error: any) => void;

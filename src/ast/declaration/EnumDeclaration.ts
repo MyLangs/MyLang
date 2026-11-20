@@ -122,7 +122,6 @@ class EnumDeclaration extends StmtType {
             [name]: isTypeArgs(value) !== "object" ? { value } : value,
           };
 
-          // lets `match (this) { case Color.Red: ... }` compare with a member
           Object.defineProperty(enumThis, Environment.SymbolEnumThis, {
             value: true,
             enumerable: false,

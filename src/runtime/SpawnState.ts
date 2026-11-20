@@ -61,8 +61,6 @@ function* runCallback(
 
 function convertSpawnState(handler: Spawn<any>, score: Environment) {
   return {
-    // live view of the task: a handle read later must show the current state,
-    // not the state at the moment `spawn` returned
     get done() {
       return handler.done;
     },
@@ -93,7 +91,6 @@ function convertSpawnState(handler: Spawn<any>, score: Environment) {
         return handler.isFinished();
       }
     },
-    // spawnHandle.output(onValue, onError?) -> new spawn that runs once `handler` settles
     output: class extends SpawnMethodBuilder {
       constructor(args: any[], astArgs: StmtType[], environment: Environment) {
         super(args, astArgs, environment);

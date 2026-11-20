@@ -53,7 +53,6 @@ class ForInStatement extends StmtType {
 
       const iterable = yield this.iterable.evaluate(bridgeEnvironment);
 
-      // `in` throws a host TypeError on primitives, so only probe real containers
       const container =
         iterable !== null &&
         (typeof iterable === "object" || typeof iterable === "function")
@@ -104,7 +103,6 @@ class ForInStatement extends StmtType {
           );
         }
       } else if (iterable?.[Environment.SymbolCoIterator]) {
-        // host lazy sequence that calls back into the language: it drives the loop body
         const self = this;
 
         yield iterable[Environment.SymbolCoIterator](function* (
@@ -138,7 +136,7 @@ class ForInStatement extends StmtType {
 
             yield this.body.evaluate(new Environment(bridgeEnvironment));
 
-            runtime.resetContinue(); // the iteration is over
+            runtime.resetContinue();
           }
         } else {
           for (const value of iterable) {
@@ -148,12 +146,10 @@ class ForInStatement extends StmtType {
 
             yield this.body.evaluate(new Environment(bridgeEnvironment));
 
-            runtime.resetContinue(); // the iteration is over
+            runtime.resetContinue();
           }
         }
       } else if (isTypeArgs(iterable) === "object") {
-        // `memberKeys` hides the `private` members of a struct instance from code
-        // outside that struct, so iterating one never leaks its internals
         for (const key of iterable?.[Symbol.iterator]
           ? iterable
           : memberKeys(iterable)) {
@@ -163,7 +159,7 @@ class ForInStatement extends StmtType {
 
           yield this.body.evaluate(new Environment(bridgeEnvironment));
 
-          runtime.resetContinue(); // the iteration is over
+          runtime.resetContinue();
         }
       } else {
         throw new BaseError(`<${isTypeArgs(iterable)}> is not iterable`);

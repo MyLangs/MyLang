@@ -44,9 +44,8 @@ class CallExpression extends StmtType {
         if (super.isNodeFunction(score.get(this.identifier))) {
           const func = score.get(this.identifier);
 
-          // arguments are evaluated in the caller's live scope (never in a copy),
-          // so closures and side effects (`f(i++)`) act on the real variables
           const evaluatedArgs = [];
+
           for (const arg of this.argument) {
             evaluatedArgs.push(yield arg.evaluate(score));
           }
@@ -59,7 +58,6 @@ class CallExpression extends StmtType {
             ? yield this.method.evaluate(score)
             : this.method;
 
-        // a `private` method may only be called from inside its own struct
         assertMemberAccess(score.get(this.identifier), method, "call");
 
         if (!hasMember(score.get(this.identifier), method)) {
@@ -150,9 +148,6 @@ class CallExpression extends StmtType {
           }
         }
 
-        // `this` is the object the method was found on. It was already
-        // evaluated above; evaluating the callee a second time would run its
-        // side effects twice (`a.add(1).mul(2)` would add twice).
         return yield methodRef.call(argument, obj);
       }
 

@@ -24,11 +24,6 @@ import {
 } from "../../runtime/structMembers";
 import { type Gen } from "../../runtime/coroutine";
 
-/**
- * The arithmetic / bitwise / logical part of a compound assignment, shared by the
- * identifier, member and static-member forms so the three can never drift apart.
- * `onUnknown` is called for an operator that is not an assignment operator.
- */
 function applyAssignment(
   assignType: TokenType,
   current: any,
@@ -125,8 +120,6 @@ class AssignmentExpression extends StmtType {
           });
         }
 
-        // `a &&= b` / `a ||= b` short-circuit: when the left side already
-        // decides the result, `b` is not evaluated and nothing is assigned.
         if (
           (this.assignType === TokenType.OperatorAndAssign && !leftValue) ||
           (this.assignType === TokenType.OperatorOrAssign && leftValue)
@@ -236,8 +229,6 @@ class AssignmentExpression extends StmtType {
           }
         }
 
-        // `Counter.created = ...` / `Counter.created += 1`: a static member of the type.
-        // Statics are ordinary mutable state, so every compound operator works on them.
         if (super.isStructData(value)) {
           const staticKey = yield this.left.property.evaluate(score);
 
@@ -305,7 +296,6 @@ class AssignmentExpression extends StmtType {
             value.methods.push(rightValue as FunctionDeclaration);
           }
 
-          // a struct *type* may gain new members, but never overwrite its own internals
           assertWritableKey(leftValue);
 
           if (
@@ -329,12 +319,10 @@ class AssignmentExpression extends StmtType {
         try {
           const leftValue = yield this.left.property.evaluate(score);
 
-          // a `private` member may only be written from inside its own struct
           assertMemberAccess(value, leftValue, "assign");
 
           const current = lookupMember(value, leftValue);
 
-          // `o.a &&= b` / `o.a ||= b` short-circuit like their identifier forms
           if (
             (this.assignType === TokenType.OperatorAndAssign && !current) ||
             (this.assignType === TokenType.OperatorOrAssign && current)
@@ -359,7 +347,6 @@ class AssignmentExpression extends StmtType {
             },
           );
 
-          // write back natively: only plain objects / arrays, never prototypes or host values
           setMember(value, leftValue, next);
 
           return next;

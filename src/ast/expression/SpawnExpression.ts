@@ -42,8 +42,6 @@ class SpawnExpression extends StmtType {
 
     const expression = this.expression;
 
-    // The body of the new green thread. It runs on its own execution context, so its
-    // return/break/continue flags can never leak into the task that spawned it.
     const body = (): Gen<any> => {
       const run = function* (self: SpawnExpression): Gen<any> {
         try {

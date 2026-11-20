@@ -1,3 +1,19 @@
+import { Environment, type IOptionsVar } from "../../Environment";
+import { type VariableDeclaration } from "../declaration/VariableDeclaration";
+import { type FunctionDeclaration } from "../declaration/FunctionDeclaration";
+import { type Gen } from "../../runtime/coroutine";
+import { BaseError } from "../../errors/BaseError";
+import {
+  noModifiers,
+  staticsOf,
+  isLanguageSymbol,
+  languageSymbolName,
+  LANGUAGE_SYMBOL_NAMES,
+  type MemberModifiers,
+  type StructModifiers,
+  type StructSymbolMethod,
+} from "../../runtime/structMembers";
+
 /**
  * Creating a struct instance.
  *
@@ -16,23 +32,6 @@
  * instance and every `TypeName.member` access shares the same value.
  */
 
-import { Environment, type IOptionsVar } from "../../Environment";
-import { type VariableDeclaration } from "../declaration/VariableDeclaration";
-import { type FunctionDeclaration } from "../declaration/FunctionDeclaration";
-import { type Gen } from "../../runtime/coroutine";
-import { BaseError } from "../../errors/BaseError";
-import {
-  noModifiers,
-  staticsOf,
-  isLanguageSymbol,
-  languageSymbolName,
-  LANGUAGE_SYMBOL_NAMES,
-  type MemberModifiers,
-  type StructModifiers,
-  type StructSymbolMethod,
-} from "../../runtime/structMembers";
-
-/** The shape both struct nodes expose to this module. */
 interface StructShape {
   name: string | null;
   fields: VariableDeclaration[];
@@ -82,7 +81,6 @@ function* evaluateSymbolMembers(
 
     const evaluated = yield method.evaluate(scope);
 
-    // the disposer reaches the private members of its own struct, like any method
     evaluated.ownerStruct = struct;
 
     members.push([evaluatedKey, evaluated]);
@@ -114,7 +112,6 @@ function* initialiseStatics(struct: StructShape): Gen<void> {
 
     const evaluated = yield method.evaluate(scope);
 
-    // a static method sees the type, never an instance
     evaluated.ownerStruct = struct;
     statics[method.name] = evaluated;
   }
@@ -131,17 +128,6 @@ function* instantiate(struct: StructShape, args: any[]): Gen<any> {
   const privateNames = new Set<string>();
   const callEnvironment = new Environment(struct.parentEnv);
 
-  /**
-   * The instance, built once and filled in place.
-   *
-   * Each field and each method used to be added by replacing `this` with a fresh object
-   * spread from the old one, which meant the instance changed identity several times
-   * while it was being built. Anything that captured `this` on the way - `var self = this`
-   * in `init`, a closure stored on the instance, `this.captured = this` - ended up holding
-   * one of the discarded copies: it compared unequal to the value the caller got, it was
-   * missing every method added after it, and a write through it went nowhere. Filling one
-   * object keeps `this` the same value from the first line of `init` onwards.
-   */
   const instance: Record<PropertyKey, any> = {
     [Environment.SymbolStruct]: true,
     [Environment.SymbolStructType]: struct,
@@ -150,7 +136,6 @@ function* instantiate(struct: StructShape, args: any[]): Gen<any> {
 
   callEnvironment.create("this", instance);
 
-  // statics stay on the type; instance members are everything else
   const instanceFields = struct.fields.filter(
     (field) => !modifiersOf(struct, field.name).static,
   );
@@ -160,7 +145,6 @@ function* instantiate(struct: StructShape, args: any[]): Gen<any> {
 
   const initStructMethod = instanceMethods.find(({ name }) => name === "init");
 
-  // never mutate the declaration: `init` must survive for the next instance
   let methods = instanceMethods;
 
   const declareField = (
@@ -202,7 +186,6 @@ function* instantiate(struct: StructShape, args: any[]): Gen<any> {
   for (const method of methods) {
     const evaluated = yield method.evaluate(callEnvironment);
 
-    // lets the method reach the private members of its own struct
     evaluated.ownerStruct = struct;
 
     if (modifiersOf(struct, method.name).private) {
@@ -214,12 +197,10 @@ function* instantiate(struct: StructShape, args: any[]): Gen<any> {
     method.parentEnv.ensure("this", instance);
   }
 
-  // after the named methods: a disposer may call them, and `this` is read at call time
   const symbolMembers = yield evaluateSymbolMembers(struct, callEnvironment);
 
   instance[Environment.SymbolStructData] = fieldsData;
 
-  // enumerable, because a spread of the instance has to carry the protocol member along
   for (const [key, member] of symbolMembers) {
     Object.defineProperty(instance, key, {
       value: member,

@@ -123,8 +123,6 @@ class TaskPool {
     }
   }
 
-  // ---------------------------------------------------------------- internals
-
   private submit<T>(
     job: () => Gen<T>,
     priority: boolean,
@@ -174,7 +172,6 @@ class TaskPool {
     let acquired = false;
 
     try {
-      // a slot is handed over directly by `release`, so `activeCount` stays accurate
       yield park<void>((wake) => {
         waiter.wake = () => wake();
 
@@ -189,7 +186,6 @@ class TaskPool {
 
       acquired = true;
     } finally {
-      // cancelled after the slot was granted but before we resumed: give the slot back
       if (!acquired && waiter.granted) this.release();
     }
   }
@@ -199,7 +195,7 @@ class TaskPool {
 
     if (next) {
       next.granted = true;
-      next.wake(); // slot is transferred to `next`
+      next.wake();
       return;
     }
 

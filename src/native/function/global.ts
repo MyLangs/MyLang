@@ -21,10 +21,6 @@ class Length extends FunctionBuilder {
       return 0;
     }
 
-    // A `bytes` value is an object carrying its own members, so counting its keys would
-    // report how many methods it has rather than how much data it holds. Every library
-    // that returns binary - fs, archive, compress, tcp - hands back one of these, and
-    // `length(data)` is the obvious way to ask how big it is.
     const binary = unwrapBuffer(value);
 
     if (binary !== null) return binary.byteLength;

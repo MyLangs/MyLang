@@ -35,7 +35,7 @@ class WhileStatement extends StmtType {
 
         const executionEnvironment = new Environment(bridgeEnvironment);
         yield this.body.evaluate(executionEnvironment);
-        runtime.resetContinue(); // the iteration is over
+        runtime.resetContinue();
       }
 
       runtime.resetBreak();

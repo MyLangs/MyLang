@@ -1,3 +1,17 @@
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  resolve as resolvePath,
+  sep,
+} from "node:path";
+import { realpathSync } from "node:fs";
+import {
+  PermissionError,
+  PermissionCodeError,
+} from "../errors/runtime/PermissionError";
+
 /**
  * Permission model of MyLang2.
  *
@@ -17,21 +31,6 @@
  * (`--allow-read=./data,./tmp`, `--allow-net=api.telegram.org`).
  */
 
-import {
-  basename,
-  dirname,
-  isAbsolute,
-  join,
-  resolve as resolvePath,
-  sep,
-} from "node:path";
-import { realpathSync } from "node:fs";
-import {
-  PermissionError,
-  PermissionCodeError,
-} from "../errors/runtime/PermissionError";
-
-/** The resources a program can be granted access to. */
 type PermissionKind =
   "read" | "write" | "net" | "env" | "process" | "sys" | "worker";
 
@@ -45,7 +44,6 @@ const PERMISSION_KINDS: readonly PermissionKind[] = [
   "worker",
 ];
 
-/** `true` = the whole kind, `string[]` = only these targets, `false` = nothing. */
 type Grant = boolean | string[];
 
 interface PermissionsInit {
@@ -106,7 +104,6 @@ function resolveLinks(full: string): string {
     } catch {
       const parent = dirname(dir);
 
-      // reached the root without finding anything that exists
       if (parent === dir) return full;
 
       tail.push(basename(dir));
@@ -137,7 +134,6 @@ function parseNetTarget(target: string): { host: string; port: string | null } {
     }
   }
 
-  // strip any path / query that may still be attached
   const slash = value.indexOf("/");
   if (slash !== -1) value = value.slice(0, slash);
 
@@ -157,7 +153,6 @@ function parseNetTarget(target: string): { host: string; port: string | null } {
 
   const colon = value.lastIndexOf(":");
 
-  // a bare IPv6 address has several colons and no port
   if (colon !== -1 && value.indexOf(":") === colon) {
     return {
       host: value.slice(0, colon).toLowerCase(),
@@ -169,7 +164,6 @@ function parseNetTarget(target: string): { host: string; port: string | null } {
 }
 
 class Permissions {
-  /** `false` once any `--allow-*` flag was seen: everything not allowed is denied. */
   public readonly sandboxed: boolean;
 
   private readonly allow: Map<PermissionKind, Grant> = new Map();
@@ -262,7 +256,6 @@ class Permissions {
 
     if (Array.isArray(grant)) return this.matches(kind, grant, target);
 
-    // nothing said about this kind: permitted unless the program is sandboxed
     return !this.sandboxed;
   }
 
@@ -298,8 +291,6 @@ class Permissions {
     return resolveLinks(this.resolve(target));
   }
 
-  // ---------------------------------------------------------------- internals
-
   private display(kind: PermissionKind, target: string): string {
     return kind === "read" || kind === "write"
       ? this.resolveForCheck(target)
@@ -334,7 +325,6 @@ class Permissions {
     entries: string[],
     target?: string,
   ): boolean {
-    // "may I use this kind at all?" - yes, as soon as anything is listed
     if (target === undefined) return entries.length > 0;
 
     if (kind === "read" || kind === "write") {
@@ -351,7 +341,6 @@ class Permissions {
 
         if (allowed.host !== asked.host && allowed.host !== "*") return false;
 
-        // an entry without a port covers every port of that host
         return allowed.port === null || allowed.port === asked.port;
       });
     }

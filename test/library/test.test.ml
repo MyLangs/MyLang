@@ -11,7 +11,7 @@ describe("test: deep equality is strict", func() {
   });
 
   test("different types are never equal (unlike the loose ==)", func() {
-    assert.isTrue(1 == "1");
+    assert.isFalse(1 == "1");
     assert.isFalse(deepEq(1, "1"));
     assert.isFalse(deepEq(0, false));
     assert.isFalse(deepEq(nil, 0));

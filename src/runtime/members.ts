@@ -118,7 +118,6 @@ function classify(target: any): { kind: Kind; native?: NativeType } {
     case "undefined":
       return { kind: "primitive" };
     case "function":
-      // native language functions (FunctionBuilder classes) and raw JS functions: no members
       return { kind: "opaque" };
   }
 

@@ -58,7 +58,6 @@ const buildInModule = [
   "utils",
   "json",
   "crypto",
-  // added in 2.2
   "test",
   "binary",
   "validation",
@@ -73,7 +72,6 @@ const buildInModule = [
   "tls",
 ];
 
-/** The namespace that marks an import as a built-in: `core:fs`, `core:net/http`. */
 const CORE_NAMESPACE = "core:";
 
 /** `true` for `core:<name>` where `<name>` is a module that ships with the interpreter. */
@@ -100,8 +98,6 @@ function defaultBindingName(moduleName: string): string {
   return bare.includes("/") ? bare.split("/").pop()! : bare;
 }
 
-// A module's `export(...)` entries are stored wrapped as `{ value, [SymbolExports] }`.
-// Importers want the plain values (`mod.add(1, 2)`), so peel the wrappers off.
 function unwrapExports(module: any): any {
   if (module === null || typeof module !== "object") return module;
 
@@ -156,8 +152,6 @@ class ImportDeclaration extends StmtType {
   *resolveJSONModule(source: string, score: Environment): Gen<any> {
     const fullPath = joinPath(score.get("import").base, source);
 
-    // Importing a .json file hands its contents to the program, which is a read like
-    // any other: without this check `--allow-read` could be stepped around entirely.
     security.read(fullPath);
 
     if (
@@ -193,8 +187,6 @@ class ImportDeclaration extends StmtType {
   }
 
   *resolveHTTPModule(url: string, score: Environment): Gen<any> {
-    // Fetching a module is a network request, and one that can carry data out of a
-    // sandbox in its URL, so it goes through the same policy as `tcp` or `net/http`.
     security.net(url);
 
     if (
@@ -219,16 +211,12 @@ class ImportDeclaration extends StmtType {
       });
     }
 
-    // `response.body` is a stream: calling `toString()` on it yielded the text
-    // "[object Object]", so every remote import failed to parse. `text()` reads it.
     const responseData: string = yield hostAwait(response.text());
 
     if (responseData.startsWith("Error:")) {
       throw responseData;
     }
 
-    // What this URL served is checked against `mylang.lock`, so a remote module cannot
-    // quietly become different code on a later run.
     integrity.verify(url, responseData);
 
     if (parsePath(url).ext === ".json") {
@@ -321,7 +309,6 @@ class ImportDeclaration extends StmtType {
     )
       return yield lift(score.get("import").cache[source]);
 
-    // library modules are CommonJS: `require` returns `module.exports` (what `import()` exposed as `default`)
     const resolvePackage = require(`../../../library/${source}/index.js`);
 
     score.update("import", {
@@ -343,7 +330,6 @@ class ImportDeclaration extends StmtType {
   *resolveFileModule(source: string, score: Environment): Gen<any> {
     const fullPath = joinPath(score.get("import").base, source);
 
-    // Loading a module reads the file and then runs it, so it needs read access to it.
     security.read(fullPath);
 
     if (
@@ -574,21 +560,13 @@ class ImportDeclaration extends StmtType {
             module[Environment.SymbolFormatedText];
         }
 
-        // a module may take the name of a predefined global (`process`), never one the
-        // program defined itself
         if (
           !score.shadowInterpreterGlobal(name, expModule, { constant: true })
         ) {
-          // Two files with the same base name bind the same name - `a/parser.ml` and
-          // `b/parser.ml` are both `parser` - and the collision used to be reported as
-          // "parser has been initialized", which says nothing about what to do. An alias
-          // is the answer, so the error says so.
           try {
             score.create(name, expModule, { constant: true });
           } catch (error: any) {
             if (String(error?.message ?? "").includes("has been initialized")) {
-              // the name may come from a file like `concurrency.test.ml`, which is not
-              // a usable identifier, so the suggestion is cleaned up
               const suggestion =
                 name.replace(/[^A-Za-z0-9_]/g, "_").replace(/^(\d)/, "_$1") +
                 "Module";
@@ -614,7 +592,6 @@ class ImportDeclaration extends StmtType {
     const { ext, dir, base, name } = parsePath(packageName);
     const fullPath = joinPath(dir, base);
 
-    // `core:fs` - checked before the `owner:repo` package form, which also uses a colon
     if (isCoreModule(packageName)) {
       return yield this.handleModuleImport(
         yield this.resolveBuildInModule(stripCoreNamespace(packageName), score),
@@ -704,7 +681,6 @@ class ImportDeclaration extends StmtType {
           : packageStmt;
       const { ext, name } = parsePath(resolvePath);
 
-      // `import ("core:fs", http: "core:net/http")`
       if (isCoreModule(packageName) || isCoreModule(resolvePath)) {
         const moduleName = stripCoreNamespace(
           isCoreModule(packageName) ? packageName : resolvePath,

@@ -98,7 +98,6 @@ function canAccessMember(target: any, key: unknown): boolean {
 
   if (!privateNames(target).has(key)) return true;
 
-  // lazily required: Runtime imports the AST, which imports this module
   const { runtime } = require("./Runtime") as typeof import("./Runtime");
 
   return runtime.isInsideStruct(target[Environment.SymbolStructType]);
@@ -125,7 +124,6 @@ function visibleKeys(instance: any, keys: string[]): string[] {
 
   if (hidden.size === 0) return keys;
 
-  // lazily required, as above
   const { runtime } = require("./Runtime") as typeof import("./Runtime");
 
   if (runtime.isInsideStruct(instance[Environment.SymbolStructType])) {

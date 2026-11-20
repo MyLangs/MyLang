@@ -12,11 +12,6 @@ interface RunOptions {
   cache?: Record<string, any>;
   options?: Record<string, any>;
   onSuccess?: (result: any) => void;
-  /**
-   * Called with the interpreter after it is built and before the program starts, so an
-   * embedder can add globals the program will see (the `workers` library uses this to
-   * install the `worker` object inside a worker thread).
-   */
   onReady?: (interpreter: Interpreter) => void;
 }
 

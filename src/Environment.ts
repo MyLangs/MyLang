@@ -18,7 +18,6 @@ class Environment {
   static SpawnQueueSymbol = Symbol("SpawnQueueSymbol");
   static SymbolEvents = Symbol("Events");
   static SymbolIterator = Symbol("SymbolIterator");
-  /** Host-side lazy sequences that must call back into the language: `(visit) => Gen<void>` */
   static SymbolCoIterator = Symbol("SymbolCoIterator");
   static SymbolNotUsedIdentifier = Symbol("NotUsedIdentifier");
   static SymbolCaptureRejections = Symbol("CaptureRejections");
@@ -27,17 +26,9 @@ class Environment {
   static SymbolStruct = Symbol("SymbolStruct");
   static SymbolDeferred = Symbol("SymbolDeferred");
   static SymbolStructData = Symbol("SymbolStructData");
-  /** On an instance: the set of member names declared `private`. */
   static SymbolStructPrivate = Symbol("SymbolStructPrivate");
-  /** On an instance: the struct type it was created from (identity for access checks). */
   static SymbolStructType = Symbol("SymbolStructType");
 
-  /**
-   * Names the interpreter itself defined in the global scope (`process`, `global`, ...).
-   * An `import` is allowed to bind over one of these, because asking for a module by name
-   * is explicit and should win over a predefined global that happens to share it.
-   * Names the program defined are never shadowed this way.
-   */
   private interpreterGlobals: Set<string> = new Set();
 
   constructor(env?: Environment) {

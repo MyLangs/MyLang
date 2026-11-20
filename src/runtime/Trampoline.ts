@@ -57,9 +57,9 @@ class Trampoline<T = any> {
 
         if (frames.length === 0) throw error;
 
-        // the callee failed: raise the error inside the caller, at its `yield`
         mode = "throw";
         input = error;
+
         continue;
       }
 
@@ -68,15 +68,14 @@ class Trampoline<T = any> {
 
         if (frames.length === 0) return { done: true, value: step.value };
 
-        // the callee finished: its return value is the result of the caller's `yield`
         mode = "next";
         input = step.value;
+
         continue;
       }
 
       const yielded = step.value;
 
-      // a call: run the callee on top of the frame stack
       if (
         yielded !== null &&
         typeof yielded === "object" &&
@@ -94,8 +93,8 @@ class Trampoline<T = any> {
         typeof yielded !== "object" ||
         typeof yielded.t !== "string"
       ) {
-        // e.g. `yield someString` - a call site forgot that its callee must be a generator
         frames.pop();
+
         mode = "throw";
         input = new Error(
           "Internal error: a coroutine yielded something that is not a call or a signal",

@@ -18,7 +18,6 @@ class IdentifierLiteral extends StmtType {
   *evaluate(score: Environment): Gen<any> {
     try {
       if (score.getOptions(this.value)?.lazy) {
-        // evaluate in the scope that declared the lazy variable
         const owner = score.getEnvironmentWithKey(this.value) ?? score;
         return yield lift(score.get(this.value)?.evaluate(owner));
       }
